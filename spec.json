@@ -1,0 +1,2770 @@
+{
+  "openapi" : "3.0.0",
+  "info" : {
+    "description" : "Niniejszy dokument stanowi ogólny zarys specyfikacji API dla systemu CGM ePortal.\nW celu integracji z systemem konieczne jest dostarczenie funkcjonalności opisywanych w tym API.\n\nKwestie do uwzględnienia według potrzeb, ograniczeń i możliwości projektowych:\n- ePortal potrzebuje skromnej bazy danych na własne potrzeby (konta użytkowników, wnioski), czy jest to możliwe do uwzględnienia ?\n- walidacja wizyty - czy należy to uwzględnić po stronie ePortalu?\n- szybkie potwierdzenie i anulowanie - wymaga implementacji generowania uuid odpornego na ataki\n- systemy płatności - z jakimi musimy się integrować ? czy nie musimy bo to nie nasza odpowiedzialność ?\n- wnioski o konto, opcja automatyczna i półautomatyczna - w zależności od potrzeb klienta\n- rejestracja konta i tworzenie pacjenta - problem z mergowaniem pacjentów, pytanie kto ma rozwiązywać ten problem i w jakim zakresie\n- mapowanie użytkowników ePortal i pacjentów HIS - chcemy, aby mapowanie było po stronie bazy ePortalu\n- autoryzacja dostępu do danych pacjenta - czy to odpowiedzialność ePortalu czy HIS ?\n- powiadomienia email/sms - wygodniej byłoby dla nas, aby HIS zaimplementował API dostosowane do ePortalu również i w tym zakresie\n- pobieranie plików - poprzez linki od HIS czy poprzez wystawiny zasób do zwracania pliku ?\n- zapis upoważnień wraz z podpisanym dokumentem - czy robimy i w jaki sposób (odpowiedzialność po stronie HIS czy dodatkowe kompoenenty obok ePortalu)\n- format daty - trzeba ustalić najlepiej jeden na całą integrację\n",
+    "version" : "1.0.0",
+    "title" : "ePortal API",
+    "termsOfService" : "http://swagger.io/terms/",
+    "contact" : {
+      "email" : "apiteam@swagger.io"
+    },
+    "license" : {
+      "name" : "Apache 2.0",
+      "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "tags" : [ {
+    "name" : "organization"
+  }, {
+    "name" : "doctor"
+  }, {
+    "name" : "service"
+  }, {
+    "name" : "insurance"
+  }, {
+    "name" : "specialization"
+  }, {
+    "name" : "test results"
+  }, {
+    "name" : "visits",
+    "description" : "Dostęp do wizyt"
+  }, {
+    "name" : "person",
+    "description" : "API udostępniające zasób osoby w systemie szpitalnym (pacjenta lub opiekuna)"
+  }, {
+    "name" : "caretakers",
+    "description" : "API udostępniające zasób opiekunów"
+  }, {
+    "name" : "documents",
+    "description" : "Dostęp do dokumentacji medycznej pacjenta"
+  }, {
+    "name" : "files",
+    "description" : "Dostęp do plików załączonych przez pacjenta"
+  }, {
+    "name" : "dictionaries",
+    "description" : "Dostęp do zasobów słownikowych"
+  }, {
+    "name" : "waitinglists",
+    "description" : "Dostęp do stanów kolejek oczekujących"
+  }, {
+    "name" : "referrals",
+    "description" : "Dostęp do skierowań"
+  }, {
+    "name" : "correspondences",
+    "description" : "Dostęp do korespondencji"
+  }, {
+    "name" : "archivecopyorder",
+    "description" : "Dostęp do zamówień kserokopiii dokumentacji medycznej"
+  }, {
+    "name" : "configuration",
+    "description" : "Opcje konfiguracyjne dla ePortalu"
+  }, {
+    "name" : "prescriptions"
+  }, {
+    "name" : "messages",
+    "description" : "Dostęp do powiadomień email/sms"
+  } ],
+  "paths" : {
+    "/kinships" : {
+      "get" : {
+        "tags" : [ "dictionaries" ],
+        "summary" : "Pobranie słownika pokrewieństw",
+        "operationId" : "getKinships",
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano słownik pokrewieństw",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Kinship"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/persons" : {
+      "post" : {
+        "tags" : [ "person" ],
+        "summary" : "Żądanie zarejestrowania osoby w HIS",
+        "operationId" : "savePerson",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Person"
+              }
+            }
+          },
+          "description" : "Zasób reprezentujący osobę do zarejestrowania w HIS. Przekazywany do HIS bez identyfikatora."
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Zarejestrowano osobę w systemie szpitalnym. Zasób reprezentujący osobę zarejestrowaną w HIS. Przekazany z identyfikatorem nadanym w HIS.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/persons/{personID}" : {
+      "get" : {
+        "tags" : [ "person" ],
+        "summary" : "Pobranie danych osoby",
+        "operationId" : "getPerson",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "personID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano dane osoby",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/persons/{personID}/contact" : {
+      "get" : {
+        "tags" : [ "person" ],
+        "summary" : "Pobranie danych kontaktowych osoby",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "personID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano dane kontaktowe osoby",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Nie znaleziono osoby"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "person" ],
+        "summary" : "Aktualizacja danych kontaktowych osoby",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "personID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Contact"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Zmieniono dane kontaktowe osoby"
+          },
+          "404" : {
+            "description" : "Nie znaleziono osoby"
+          }
+        }
+      }
+    },
+    "/persons/{personID}/address" : {
+      "get" : {
+        "tags" : [ "person" ],
+        "summary" : "Pobranie danych adresowych osoby",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "personID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano dane adresowe osoby",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Address"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Nie znaleziono osoby"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "person" ],
+        "summary" : "Aktualizacja danych adresowych osoby",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "personID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Address"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Zmieniono dane kontaktowe osoby"
+          },
+          "404" : {
+            "description" : "Nie znaleziono osoby"
+          }
+        }
+      }
+    },
+    "/caretakers" : {
+      "get" : {
+        "tags" : [ "caretakers" ],
+        "summary" : "Pobranie opiekunów",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "caretakerID",
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "wardID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano opiekunów",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Caretaker"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "caretakers" ],
+        "summary" : "Dodanie opiekuna",
+        "operationId" : "addCaretaker",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Caretaker"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Dodano opiekuna"
+          }
+        }
+      }
+    },
+    "/caretakers/{caretakerID}" : {
+      "get" : {
+        "tags" : [ "caretakers" ],
+        "summary" : "Pobranie opiekuna",
+        "operationId" : "getCaretaker",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "caretakerID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano opiekuna",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Caretaker"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "caretakers" ],
+        "summary" : "Pobranie opiekuna",
+        "operationId" : "updateCaretaker",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "caretakerID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Caretaker"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano opiekuna",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Caretaker"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "caretakers" ],
+        "summary" : "usunięcie opiekuna",
+        "operationId" : "deleteCaretaker",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "caretakerID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "usunięto opiekuna"
+          }
+        }
+      }
+    },
+    "/organizations/{organizationID}" : {
+      "get" : {
+        "tags" : [ "organization" ],
+        "summary" : "Pobiera poradnie",
+        "operationId" : "getOrganization",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "organizationID",
+          "schema" : {
+            "title" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Wyszukano poradnie",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Organization"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/organizations/{organizationID}/address" : {
+      "get" : {
+        "tags" : [ "organization" ],
+        "summary" : "Pobranie danych adresowych jednostki organizacyjnej",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "organizationID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano dane adresowe jednostki organizacyjnej",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Address"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Nie znaleziono jednostki organizacyjnej"
+          }
+        }
+      }
+    },
+    "/organizations/{organizationID}/contact" : {
+      "get" : {
+        "tags" : [ "organization" ],
+        "summary" : "Pobranie danych kontaktowych jednostki organizacyjnej",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "organizationID",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano dane kontaktowe jednostki organizacyjnej",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Nie znaleziono jednostki organizacyjnej"
+          }
+        }
+      }
+    },
+    "/organizations/searches" : {
+      "post" : {
+        "tags" : [ "organization" ],
+        "summary" : "Zwraca poradnie na podstawie kryteriów wyszukiwania",
+        "description" : "Wyszukiwanie poradni powinno uwzględniać powiązania pomiędzy wybraną poradnią, lekarzem oraz usługą. Wykorzystywane dla kontrolki poradnia kryteriów rezerwacji wizyt.",
+        "operationId" : "getClinicsByReservationCriteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SearchReservationCriteria"
+              }
+            }
+          },
+          "description" : "Kryteria wyszukiwania poradni dla GUI rezerwacj wizyty",
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Wyszukano poradnie",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctors" : {
+      "get" : {
+        "tags" : [ "doctor" ],
+        "summary" : "Pobieranie lekarzy",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "consultation.type",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "SKYPE" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano lekarza",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Doctor"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctors/{doctorID}" : {
+      "get" : {
+        "tags" : [ "doctor" ],
+        "summary" : "Pobiera lekarze",
+        "operationId" : "getDoctor",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "doctorID",
+          "schema" : {
+            "title" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano lekarza",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Doctor"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doctors/searches" : {
+      "post" : {
+        "tags" : [ "doctor" ],
+        "summary" : "Zwraca lekarzy na podstawie kryteriów wyszukiwania",
+        "description" : "Wyszukiwanie poradni powinno uwzględniać powiązania pomiędzy wybraną poradnią, lekarzem oraz usługą. Wykorzystywane dla kontrolki lekarz kryteriów rezerwacji wizyt.",
+        "operationId" : "getDoctorsByReservationCriteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SearchReservationCriteria"
+              }
+            }
+          },
+          "description" : "Kryteria wyszukiwania lekarzy dla GUI rezerwacj wizyty",
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Wyszukano lekarzy",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Doctor"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services" : {
+      "get" : {
+        "tags" : [ "service" ],
+        "summary" : "Pobiera usługi",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "search",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Znaleziono usługi",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Service"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services/{serviceID}" : {
+      "get" : {
+        "tags" : [ "service" ],
+        "summary" : "Pobiera usługę",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "serviceID",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Znaleziono usługi",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Service"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services/searches" : {
+      "post" : {
+        "tags" : [ "service" ],
+        "summary" : "Zwraca usługi na podstawie kryteriów wyszukiwania",
+        "description" : "Wyszukiwanie usług powinno uwzględniać powiązania pomiędzy wybraną poradnią, lekarzem oraz usługą. Wykorzystywane dla kontrolki usługa kryteriów rezerwacji wizyt.",
+        "operationId" : "getServicesByReservationCriteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SearchReservationCriteria"
+              }
+            }
+          },
+          "description" : "Kryteria wyszukiwania usług dla GUI rezerwacj wizyty",
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Wyszukano usługi",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Service"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/insurances" : {
+      "get" : {
+        "tags" : [ "insurance" ],
+        "summary" : "Zwraca ubezpieczenie pacjenta na podstawie jego identyfikatora i/lub usługi",
+        "description" : "Wykorzystywane dla kontrolki usługa kryteriów rezerwacji wizyt.",
+        "operationId" : "getInsurance",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "personID",
+          "required" : false,
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "serviceID",
+          "required" : false,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Wyszukano ubezpieczenia",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Insurance"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/specializations/{specializationID}" : {
+      "get" : {
+        "tags" : [ "specialization" ],
+        "summary" : "Pobiera specjalizacje",
+        "operationId" : "getSpecialization",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "specializationID",
+          "schema" : {
+            "title" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano specjalizację",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Specialization"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/specializationss/searches" : {
+      "post" : {
+        "tags" : [ "specialization" ],
+        "summary" : "Zwraca specjalizację na podstawie kryteriów wyszukiwania",
+        "description" : "Wyszukiwanie poradni powinno uwzględniać powiązania pomiędzy wybraną poradnią, lekarzem oraz usługą. Wykorzystywane dla kontrolki lekarz kryteriów rezerwacji wizyt.",
+        "operationId" : "getSpecializationsByReservationCriteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SearchReservationCriteria"
+              }
+            }
+          },
+          "description" : "Kryteria wyszukiwania specjalizacji dla GUI rezerwacj wizyty",
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Wyszukano specjalizację",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Specialization"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/timeslots/searches" : {
+      "post" : {
+        "tags" : [ "visits" ],
+        "summary" : "Zwraca wolne terminiy na podstawie kryteriów wyszukiwania",
+        "operationId" : "getFreeTimeSlots",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ReservationCriteria"
+              }
+            }
+          },
+          "description" : "Kryteria wyszukiwania wolnych terminów dla GUI rezerwacj wizyty",
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Wyszukano wolne terminy",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TimeSlot"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/visits" : {
+      "post" : {
+        "tags" : [ "visits" ],
+        "summary" : "Rezerwuje wizytę w wolnym terminie",
+        "operationId" : "saveReservation",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Reservation"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Zarezerwowano wizytę",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Visit"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "termin została już zajęty"
+          }
+        }
+      },
+      "get" : {
+        "tags" : [ "visits" ],
+        "summary" : "Pobiera wizyty pacjenta",
+        "operationId" : "getPatientVisits",
+        "parameters" : [ {
+          "name" : "personID",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "EXECUTED", "CANCELED" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano wizytę",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Visit"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/visits/{visitUUID}" : {
+      "get" : {
+        "tags" : [ "visits" ],
+        "summary" : "Pobiera szczegóły wizyty",
+        "operationId" : "getFullVisitInfo",
+        "parameters" : [ {
+          "name" : "visitUUID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano szegóły wizyty",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Visit"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "nie znaleziono wizyty"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "visits" ],
+        "summary" : "Modyfikuję dane wiyty",
+        "operationId" : "modifyAppointment",
+        "parameters" : [ {
+          "name" : "visitUUID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Visit"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "zmodyfikowano wizytę"
+          }
+        }
+      }
+    },
+    "/visits/{visitUUID}/referrals" : {
+      "post" : {
+        "tags" : [ "referrals" ],
+        "summary" : "Zapisanie metadanych skierowania",
+        "operationId" : "saveReferral",
+        "parameters" : [ {
+          "name" : "visitUUID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Zapisano metadane skierowania",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Referral"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "nie znaleziono wizyty"
+          }
+        }
+      },
+      "get" : {
+        "tags" : [ "referrals" ],
+        "summary" : "Pobranie metadanych skierowań",
+        "operationId" : "getReferrals",
+        "parameters" : [ {
+          "name" : "visitUUID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "zmodyfikowano wizytę",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Referral"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/visits/{visitUUID}/referrals/{referralID}" : {
+      "get" : {
+        "tags" : [ "referrals" ],
+        "summary" : "Pobranie metadanych skierowania",
+        "operationId" : "getReferral",
+        "parameters" : [ {
+          "name" : "visitUUID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "referralID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano metadane skierowania",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Referral"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "nie znaleziono wizyty"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "referrals" ],
+        "summary" : "usunięcie metadanych skierowania",
+        "operationId" : "deleteReferral",
+        "parameters" : [ {
+          "name" : "visitUUID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "referralID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "usunięto skierowanie"
+          }
+        }
+      }
+    },
+    "/examinationResults" : {
+      "get" : {
+        "tags" : [ "test results" ],
+        "summary" : "Pobiera wyniki badań pacjenta",
+        "operationId" : "getExaminationResultsForPatient",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "personID",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano wyniki badań pacjenta",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ExaminationResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/examinationResults/{resultID}" : {
+      "get" : {
+        "tags" : [ "test results" ],
+        "summary" : "Pobiera wynik badań",
+        "operationId" : "getExaminationResultById",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "resultID",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Pobrano wynik badania",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExaminationResult"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "nie znaleziono wyniku badania"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "test results" ],
+        "summary" : "Modyfikuję dane wyników badania",
+        "operationId" : "modifyExaminationResults",
+        "parameters" : [ {
+          "name" : "resultID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ExaminationResult"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "zmodyfikowano wynik badania"
+          },
+          "404" : {
+            "description" : "nie znaleziono wyniku badania"
+          }
+        }
+      }
+    },
+    "/persons/{personId}/documents" : {
+      "get" : {
+        "tags" : [ "documents" ],
+        "summary" : "Pobranie dokumentacji medycznej pacjenta",
+        "description" : "Pobranie dokumentacji medycznej pacjenta",
+        "parameters" : [ {
+          "name" : "personId",
+          "in" : "path",
+          "description" : "Id osoby, której dokumentacja ma dotyczyć",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Lista dokumentów pacjenta",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PatientDocument"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Podane id nie spełnia wymagań",
+            "content" : { }
+          },
+          "404" : {
+            "description" : "Pacjent nie został znaleziony",
+            "content" : { }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "documents" ],
+        "summary" : "Dodanie dokumentu do dokumentacji medycznej na potrzeby zgód pacjenta",
+        "description" : "Dodanie dokumentu do dokumentacji medycznej. W tej chwili używane jedynie do dodania podpisanych zgód pacjenta upoważniających inne osoby do określonych działań",
+        "parameters" : [ {
+          "name" : "personId",
+          "in" : "path",
+          "description" : "Id osoby, której pliki mają dotyczyć",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "personId" : {
+                    "type" : "string"
+                  },
+                  "signed" : {
+                    "type" : "boolean"
+                  },
+                  "name" : {
+                    "type" : "boolean"
+                  },
+                  "createDate" : {
+                    "type" : "string"
+                  },
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Udało się dodać dokument",
+            "headers" : {
+              "Location" : {
+                "schema" : {
+                  "type" : "integer"
+                },
+                "description" : "Id dodanego dokumentu"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/persons/{personId}/documents/{documentId}" : {
+      "get" : {
+        "tags" : [ "documents" ],
+        "summary" : "Pobranie dokumentacji medycznej w formie wydruku do wyświetlenia (transformata) w ramach zgód pacjenta",
+        "description" : "Pobranie dokumentacji medycznej pacjenta",
+        "parameters" : [ {
+          "name" : "personId",
+          "in" : "path",
+          "description" : "Id osoby, której dokumentacja ma dotyczyć",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "documentId",
+          "in" : "path",
+          "description" : "Id dokumentu do pobrania",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Dokument pacjenta w formie transformaty (wydruk)",
+            "content" : {
+              "text/html" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Podane id nie spełnia wymagań",
+            "content" : { }
+          },
+          "404" : {
+            "description" : "Pacjent nie został znaleziony",
+            "content" : { }
+          }
+        }
+      }
+    },
+    "/person/{personId}/files" : {
+      "get" : {
+        "tags" : [ "files" ],
+        "summary" : "Pobranie plików pacjenta",
+        "description" : "Pobranie plików, dodanych przez niego w ePortalu. Nie stanowią one dokumentacji medycznej, chyba że zostaną do niej dołączone.",
+        "parameters" : [ {
+          "name" : "personId",
+          "in" : "path",
+          "description" : "Id osoby, której pliki mają dotyczyć",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Udało się pobrać listę plików",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PatientFile"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "files" ],
+        "summary" : "Dodanie pliku do plików pacjenta",
+        "description" : "Dodanie zawartości pliku do plików pacjenta, dodanych przez niego w ePortalu. Nie stanowią one dokumentacji medycznej, chyba że zostaną do niej dołączone.",
+        "parameters" : [ {
+          "name" : "personId",
+          "in" : "path",
+          "description" : "Id osoby, której pliki mają dotyczyć",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fileName" : {
+                    "type" : "string"
+                  },
+                  "createdByPersonId" : {
+                    "type" : "integer"
+                  },
+                  "createDate" : {
+                    "type" : "string"
+                  },
+                  "comment" : {
+                    "type" : "string"
+                  },
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Udało się dodać plik",
+            "headers" : {
+              "Location" : {
+                "schema" : {
+                  "type" : "integer"
+                },
+                "description" : "Id dodanego pliku"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/person/{personId}/files/{fileId}" : {
+      "delete" : {
+        "tags" : [ "files" ],
+        "summary" : "Usunięcie pliku (wraz z jego metadanymi) pacjenta",
+        "parameters" : [ {
+          "name" : "personId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "name" : "fileId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Udało się usunąć plik"
+          },
+          "404" : {
+            "description" : "Nie znaleziono pacjenta"
+          }
+        }
+      }
+    },
+    "/archivecopyorders" : {
+      "get" : {
+        "tags" : [ "archivecopyorder" ],
+        "summary" : "Pobranie zamówień kserokopii dokumentacji medycznej",
+        "parameters" : [ {
+          "name" : "personId",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Lista zamówień kserokopii dla użytkownika",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ArchiveCopyOrder4List"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "archivecopyorder" ],
+        "summary" : "Dodanie zamówienia na kserokopię dokumentacji medycznej",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AddArchiveCopyOrder"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Dodano zamówienie kserokopii dokumentacji medycznej",
+            "headers" : {
+              "Location" : {
+                "schema" : {
+                  "type" : "integer",
+                  "description" : "Id dodanego zamówienia"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/archivecopyorders/{orderId}" : {
+      "put" : {
+        "tags" : [ "archivecopyorder" ],
+        "summary" : "Aktualizacja zamówienia na kserokopię dokumentacji medycznej",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "orderId",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateArchiveCopyOrder"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Dokonano aktualizacji zamówienia"
+          }
+        }
+      },
+      "get" : {
+        "tags" : [ "archivecopyorder" ],
+        "summary" : "Pobranie danych szczegółowych zamówienia",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "orderId",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Szczegóły zamówienia",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ArchiveCopyOrder"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Nie znaleziono zamówienia"
+          }
+        }
+      }
+    },
+    "/waitinglists" : {
+      "get" : {
+        "tags" : [ "waitinglists" ],
+        "summary" : "Pobranie stanów kolejek oczekujących",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "personID",
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "type",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "CLINIC", "WARD", "DIAGNOSTIC" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Udało się pobrać stany kolejek oczekujących",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/WaitingList"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/correspondences" : {
+      "get" : {
+        "tags" : [ "correspondences" ],
+        "summary" : "Pobranie korespondencji",
+        "parameters" : [ {
+          "name" : "senderID",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "name" : "receiverID",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "NEW", "READ" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Udało się pobrać korespondencję",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Correspondence"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "correspondences" ],
+        "summary" : "Wysłanie korespondencji",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Correspondence"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Udało się wysłać korespondencję",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Correspondence"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/correspondences/{correspondenceID}" : {
+      "get" : {
+        "tags" : [ "correspondences" ],
+        "parameters" : [ {
+          "name" : "correspondenceID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Udało się pobrać korespondencję",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Correspondence"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "correspondences" ],
+        "parameters" : [ {
+          "name" : "correspondenceID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Correspondence"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Udało się zmodyfikować korespondencję",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Correspondence"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "correspondences" ],
+        "parameters" : [ {
+          "name" : "correspondenceID",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Udało się usunąć korespondencję"
+          }
+        }
+      }
+    },
+    "/correspondences/categories" : {
+      "get" : {
+        "tags" : [ "correspondences" ],
+        "responses" : {
+          "200" : {
+            "description" : "Udało się pobrać kategorie korespondencji",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CorrespondenceCategory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "correspondences" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CorrespondenceCategory"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Udało się utworzyć katetorie korespondencji",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CorrespondenceCategory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/prescriptions/searches" : {
+      "post" : {
+        "tags" : [ "prescriptions" ],
+        "summary" : "Zwraca recepty na podstawie kryteriów wyszukiwania",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SearchPrescriptionCriteria"
+              }
+            }
+          },
+          "description" : "Kryteria wyszukiwania recept",
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Wyszukano recepty",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PrescriptionPack"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/messages" : {
+      "post" : {
+        "tags" : [ "messages" ],
+        "summary" : "Dodanie wiadomości do wysłania - wysłanie powiadomienia sms lub email (na potrzeby udostępniania danych pacjenta, więc może niepotrzebne)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Message"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Dodano wiadomość do wysłania"
+          }
+        }
+      }
+    },
+    "/configuration/options" : {
+      "get" : {
+        "tags" : [ "configuration" ],
+        "summary" : "Pobranie opcji konfiguracyjnych dla ePortalu",
+        "responses" : {
+          "200" : {
+            "description" : "Lista opcji konfiguracyjnych dla ePortalu",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ConfigurationOption"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "SearchReservationCriteria" : {
+        "type" : "object",
+        "properties" : {
+          "organizationIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer"
+            }
+          },
+          "serviceId" : {
+            "type" : "integer"
+          },
+          "doctorId" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "ReservationCriteria" : {
+        "type" : "object",
+        "properties" : {
+          "personID" : {
+            "type" : "string"
+          },
+          "doctorID" : {
+            "type" : "integer"
+          },
+          "organizationID" : {
+            "type" : "integer"
+          },
+          "serviceID" : {
+            "type" : "integer"
+          },
+          "timeFrom" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "timeTo" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "insuraceIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer"
+            }
+          }
+        }
+      },
+      "Organization" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "mapCoordinateX" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "mapCoordinateY" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "organizationName" : {
+            "type" : "string"
+          },
+          "address" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "message" : {
+            "type" : "string",
+            "description" : "Dodatkowy komunikat przypisany do jednostki organizacyjnej"
+          },
+          "contact" : {
+            "$ref" : "#/components/schemas/Contact"
+          },
+          "statCode" : {
+            "type" : "string"
+          },
+          "specialization" : {
+            "$ref" : "#/components/schemas/Specialization"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "organizationType" : {
+            "type" : "string",
+            "enum" : [ "CLINIC", "OFFICE", "HOSPITAL" ]
+          },
+          "workingHours" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DayWorkingHour"
+            }
+          }
+        }
+      },
+      "Doctor" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "surname" : {
+            "type" : "string"
+          },
+          "degree" : {
+            "type" : "string"
+          },
+          "specialization" : {
+            "$ref" : "#/components/schemas/Specialization"
+          },
+          "consultation" : {
+            "$ref" : "#/components/schemas/Consultation"
+          }
+        }
+      },
+      "Service" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "EXAMINATION", "CONSULTATION", "OTHER" ]
+          }
+        }
+      },
+      "Insurance" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "insuranceName" : {
+            "type" : "string"
+          },
+          "insuranceType" : {
+            "type" : "string"
+          }
+        }
+      },
+      "TimeSlot" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "serviceID" : {
+            "type" : "integer"
+          },
+          "timeFrom" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "timeTo" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "doctorID" : {
+            "type" : "integer"
+          },
+          "organizationID" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "Reservation" : {
+        "type" : "object",
+        "properties" : {
+          "personID" : {
+            "type" : "integer"
+          },
+          "timeslotID" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "Address" : {
+        "type" : "object",
+        "properties" : {
+          "street" : {
+            "type" : "string"
+          },
+          "homeNo" : {
+            "type" : "string"
+          },
+          "flatNo" : {
+            "type" : "string"
+          },
+          "postalCode" : {
+            "type" : "string"
+          },
+          "place" : {
+            "type" : "string"
+          },
+          "postalOffice" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Person" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "surname" : {
+            "type" : "string"
+          },
+          "pesel" : {
+            "type" : "string"
+          },
+          "address" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "contact" : {
+            "$ref" : "#/components/schemas/Contact"
+          },
+          "dayOfBirth" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "role" : {
+            "type" : "string",
+            "enum" : [ "CARETAKER", "PATIENT" ]
+          }
+        }
+      },
+      "Specialization" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "code" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Visit" : {
+        "type" : "object",
+        "properties" : {
+          "uuid" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "personID" : {
+            "type" : "integer"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "REGISTERED", "EXECUTED", "CANCELED" ]
+          },
+          "confirmed" : {
+            "type" : "boolean",
+            "default" : false
+          },
+          "startDt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "stopDt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "hoursToRemind" : {
+            "type" : "integer"
+          },
+          "officeID" : {
+            "type" : "integer"
+          },
+          "clinicID" : {
+            "type" : "integer"
+          },
+          "doctorID" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "ExaminationResult" : {
+        "type" : "object",
+        "properties" : {
+          "resultID" : {
+            "type" : "integer"
+          },
+          "serviceID" : {
+            "type" : "integer"
+          },
+          "oraganizationID" : {
+            "type" : "integer"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "NEW", "IN_PROGRESS", "RESULT" ]
+          },
+          "state" : {
+            "type" : "string",
+            "enum" : [ "NEW", "VIEWED", "DELETED" ]
+          },
+          "examinationDt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "visitID" : {
+            "type" : "integer"
+          },
+          "results" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "url",
+              "description" : "link do pliku z wynikami badania"
+            }
+          }
+        }
+      },
+      "PatientDocument" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "orgUnitId" : {
+            "type" : "integer"
+          },
+          "perfDate" : {
+            "type" : "string"
+          },
+          "startDate" : {
+            "type" : "string"
+          },
+          "stopDate" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "comment" : {
+            "type" : "string"
+          },
+          "printOutLink" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PatientFile" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "fileLink" : {
+            "type" : "string"
+          },
+          "fileName" : {
+            "type" : "string"
+          },
+          "createdByPersonId" : {
+            "type" : "integer"
+          },
+          "createDate" : {
+            "type" : "string"
+          },
+          "comment" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Caretaker" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "caretakerID" : {
+            "type" : "integer"
+          },
+          "wardID" : {
+            "type" : "integer"
+          },
+          "kinshipID" : {
+            "type" : "integer"
+          },
+          "authorizations" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Authorization"
+            }
+          },
+          "authorizationDocumentId" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "Authorization" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "authorizationOption" : {
+            "type" : "object",
+            "properties" : {
+              "id" : {
+                "type" : "integer"
+              },
+              "name" : {
+                "type" : "string"
+              }
+            }
+          },
+          "comments" : {
+            "type" : "string"
+          },
+          "startDate" : {
+            "type" : "string"
+          },
+          "stopDate" : {
+            "type" : "string"
+          },
+          "active" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "Kinship" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Referral" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "leadingDoctor" : {
+            "type" : "string"
+          },
+          "issueDt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "leadingOrganization" : {
+            "type" : "string"
+          },
+          "recognition" : {
+            "type" : "string"
+          },
+          "visitUUID" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "filePath" : {
+            "type" : "string"
+          },
+          "url" : {
+            "type" : "string",
+            "format" : "url",
+            "description" : "link do pliku"
+          }
+        }
+      },
+      "WaitingList" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "medicalCategory" : {
+            "type" : "string"
+          },
+          "recordAtDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "organizationName" : {
+            "type" : "string"
+          },
+          "roomName" : {
+            "type" : "string"
+          },
+          "addedByPerson" : {
+            "type" : "string"
+          },
+          "lastRescheduleDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "lastRescheduleCause" : {
+            "type" : "string"
+          },
+          "plannedVisitDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "numberOfWaitingPeopleOnList" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "DayWorkingHour" : {
+        "type" : "object",
+        "properties" : {
+          "day" : {
+            "type" : "string"
+          },
+          "workingPeriods" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "dateFrom" : {
+                  "type" : "string",
+                  "format" : "date-time"
+                },
+                "dateTo" : {
+                  "type" : "string",
+                  "format" : "date-time"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Correspondence" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "senderID" : {
+            "type" : "integer"
+          },
+          "receiverIDs" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer"
+            }
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "content" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "NEW", "READ", "DELETED" ]
+          }
+        }
+      },
+      "CorrespondenceCategory" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "receiverIDs" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer"
+            }
+          }
+        }
+      },
+      "ArchiveCopyOrder4List" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "orderDate" : {
+            "type" : "string"
+          },
+          "organization" : {
+            "$ref" : "#/components/schemas/Organization"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "NEW_ORDER", "PRICE_ESTIMATION", "WAITING_FOR_COST_ACCEPTANCE", "IN_REALISATION", "CHANGED", "WAITING_FOR_PAYMENT", "DELIVERY_CHANGED", "SEND", "READY_FOR_RECEIVE", "RECEIVED", "CANCELED" ]
+          },
+          "pickupType" : {
+            "type" : "string",
+            "enum" : [ "Shipping", "PersonalPickup" ]
+          },
+          "paymentType" : {
+            "type" : "string",
+            "enum" : [ "CashOnDelivery", "OnlinePayment" ]
+          },
+          "totalPrice" : {
+            "type" : "number"
+          }
+        }
+      },
+      "AddArchiveCopyOrder" : {
+        "type" : "object",
+        "properties" : {
+          "organizationId" : {
+            "type" : "integer"
+          },
+          "startDate" : {
+            "type" : "string"
+          },
+          "stopDate" : {
+            "type" : "string"
+          },
+          "patientComments" : {
+            "type" : "string"
+          },
+          "orderingPersonId" : {
+            "type" : "integer"
+          },
+          "pickupType" : {
+            "type" : "string",
+            "enum" : [ "Shipping", "PersonalPickup" ]
+          },
+          "paymentType" : {
+            "type" : "string",
+            "enum" : [ "CashOnDelivery", "OnlinePayment" ]
+          },
+          "deliveryAddress" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "deliveryContact" : {
+            "$ref" : "#/components/schemas/Contact"
+          }
+        }
+      },
+      "UpdateArchiveCopyOrder" : {
+        "type" : "object",
+        "properties" : {
+          "organizationId" : {
+            "type" : "integer"
+          },
+          "personId" : {
+            "type" : "integer"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "payment" : {
+            "type" : "object",
+            "properties" : {
+              "id" : {
+                "type" : "integer"
+              },
+              "name" : {
+                "type" : "string"
+              }
+            }
+          },
+          "paymentDate" : {
+            "type" : "string"
+          },
+          "startDate" : {
+            "type" : "string"
+          },
+          "stopDate" : {
+            "type" : "string"
+          },
+          "patientComments" : {
+            "type" : "string"
+          },
+          "orderingPersonId" : {
+            "type" : "integer"
+          },
+          "statusChangedByPersonId" : {
+            "type" : "integer"
+          },
+          "cancelReason" : {
+            "type" : "string"
+          },
+          "pickupType" : {
+            "type" : "string",
+            "enum" : [ "Shipping", "PersonalPickup" ]
+          },
+          "paymentType" : {
+            "type" : "string",
+            "enum" : [ "CashOnDelivery", "OnlinePayment" ]
+          },
+          "deliveryAddress" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "deliveryContact" : {
+            "$ref" : "#/components/schemas/Contact"
+          }
+        }
+      },
+      "ArchiveCopyOrder" : {
+        "type" : "object",
+        "properties" : {
+          "organization" : {
+            "$ref" : "#/components/schemas/Organization"
+          },
+          "personId" : {
+            "type" : "integer"
+          },
+          "amount" : {
+            "type" : "number"
+          },
+          "payment" : {
+            "type" : "object",
+            "properties" : {
+              "id" : {
+                "type" : "integer"
+              },
+              "name" : {
+                "type" : "string"
+              }
+            }
+          },
+          "paymentDate" : {
+            "type" : "string"
+          },
+          "startDate" : {
+            "type" : "string"
+          },
+          "stopDate" : {
+            "type" : "string"
+          },
+          "patientComments" : {
+            "type" : "string"
+          },
+          "orderingPerson" : {
+            "type" : "object",
+            "properties" : {
+              "phone" : {
+                "type" : "string"
+              }
+            }
+          },
+          "statusChangedByPersonId" : {
+            "type" : "integer"
+          },
+          "cancelReason" : {
+            "type" : "string"
+          },
+          "pickupType" : {
+            "type" : "string",
+            "enum" : [ "Shipping", "PersonalPickup" ]
+          },
+          "paymentType" : {
+            "type" : "string",
+            "enum" : [ "CashOnDelivery", "OnlinePayment" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "NEW_ORDER", "PRICE_ESTIMATION", "WAITING_FOR_COST_ACCEPTANCE", "IN_REALISATION", "CHANGED", "WAITING_FOR_PAYMENT", "DELIVERY_CHANGED", "SEND", "READY_FOR_RECEIVE", "RECEIVED", "CANCELED" ]
+          },
+          "deliveryAddress" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "deliveryContact" : {
+            "$ref" : "#/components/schemas/Contact"
+          },
+          "totalPrice" : {
+            "type" : "number"
+          },
+          "contactPhoneNumber" : {
+            "type" : "string"
+          },
+          "pageCount" : {
+            "type" : "integer"
+          },
+          "packageTrackingNumber" : {
+            "type" : "string"
+          },
+          "archivistComments" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Contact" : {
+        "type" : "object",
+        "properties" : {
+          "phone" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "fax" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Consultation" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "enum" : [ "SKYPE" ]
+          },
+          "communicationNick" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Message" : {
+        "type" : "object",
+        "properties" : {
+          "recipient" : {
+            "type" : "string"
+          },
+          "content" : {
+            "type" : "string"
+          },
+          "subject" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "EMAIL", "SMS" ]
+          },
+          "params" : {
+            "type" : "object"
+          },
+          "event" : {
+            "type" : "string",
+            "enum" : [ "SIMPLE", "PIN_AUTHORIZE", "REMIND_PASSWORD", "ACCOUNT_REGISTERED" ],
+            "description" : "Zdarzenie w ePortalu, którego dotyczy powiadomienie, SIMPLE oznacza, że content i subject i recipient są brane z ciała tego requesta"
+          }
+        }
+      },
+      "ConfigurationOption" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "string"
+          }
+        }
+      },
+      "SearchPrescriptionCriteria" : {
+        "type" : "object",
+        "properties" : {
+          "personId" : {
+            "type" : "integer"
+          },
+          "startDate" : {
+            "type" : "string"
+          },
+          "stopDate" : {
+            "type" : "string"
+          },
+          "organizationId" : {
+            "type" : "integer"
+          },
+          "doctorId" : {
+            "type" : "integer"
+          },
+          "drugName" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PrescriptionPack" : {
+        "type" : "object",
+        "properties" : {
+          "packSize" : {
+            "type" : "integer"
+          },
+          "prescriptions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Prescription"
+            }
+          }
+        }
+      },
+      "Prescription" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "prescriptionNo" : {
+            "type" : "string"
+          },
+          "insurId" : {
+            "type" : "integer"
+          },
+          "insurCode" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PrescriptedDrug" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          }
+        }
+      }
+    }
+  },
+  "servers" : [ {
+    "description" : "SwaggerHub API Auto Mocking",
+    "url" : "https://virtserver.swaggerhub.com/cgm.pl/eportal/1.0.0"
+  } ]
+}
