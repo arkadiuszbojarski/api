@@ -148,6 +148,41 @@
             }
           }
         }
+      },
+      "put" : {
+        "tags" : [ "person" ],
+        "summary" : "Edycja danych osoby",
+        "operationId" : "updatePerson",
+        "parameters" : [ {
+          "in" : "path",
+          "required" : true,
+          "name" : "personId",
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Person"
+              }
+            }
+          },
+          "description" : "Zasób reprezentujący osobę w HIS."
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Zmodyfikowano dane osoby",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/persons/{personId}/contact" : {
@@ -2269,6 +2304,9 @@
           "pesel" : {
             "type" : "string"
           },
+          "otherIdentityDocument" : {
+            "$ref" : "#/components/schemas/IdentityDocument"
+          },
           "address" : {
             "$ref" : "#/components/schemas/Address"
           },
@@ -2338,6 +2376,9 @@
             "type" : "integer"
           },
           "doctorId" : {
+            "type" : "integer"
+          },
+          "serviceId" : {
             "type" : "integer"
           }
         }
@@ -3062,6 +3103,17 @@
             "$ref" : "#/components/schemas/Kinship"
           },
           "insertDate" : {
+            "type" : "string"
+          }
+        }
+      },
+      "IdentityDocument" : {
+        "type" : "object",
+        "properties" : {
+          "documentNumber" : {
+            "type" : "string"
+          },
+          "documentKind" : {
             "type" : "string"
           }
         }
