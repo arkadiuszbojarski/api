@@ -1,22 +1,23 @@
 {
   "openapi" : "3.0.0",
   "info" : {
-    "description" : "Niniejszy dokument stanowi ogólny zarys specyfikacji API dla systemu CGM ePortal.\nW celu integracji z systemem konieczne jest dostarczenie funkcjonalności opisywanych w tym API.\n\nKwestie do uwzględnienia według potrzeb, ograniczeń i możliwości projektowych:\n- ePortal potrzebuje skromnej bazy danych na własne potrzeby (konta użytkowników, wnioski), czy jest to możliwe do uwzględnienia ?\n- walidacja wizyty - czy należy to uwzględnić po stronie ePortalu?\n- szybkie potwierdzenie i anulowanie - wymaga implementacji generowania uuid odpornego na ataki\n- systemy płatności - z jakimi musimy się integrować ? czy nie musimy bo to nie nasza odpowiedzialność ?\n- wnioski o konto, opcja automatyczna i półautomatyczna - w zależności od potrzeb klienta\n- rejestracja konta i tworzenie pacjenta - problem z mergowaniem pacjentów, pytanie kto ma rozwiązywać ten problem i w jakim zakresie\n- mapowanie użytkowników ePortal i pacjentów HIS - chcemy, aby mapowanie było po stronie bazy ePortalu\n- autoryzacja dostępu do danych pacjenta - czy to odpowiedzialność ePortalu czy HIS ?\n- powiadomienia email/sms - wygodniej byłoby dla nas, aby HIS zaimplementował API dostosowane do ePortalu również i w tym zakresie\n- pobieranie plików - poprzez linki od HIS czy poprzez wystawiny zasób do zwracania pliku ?\n- zapis upoważnień wraz z podpisanym dokumentem - czy robimy i w jaki sposób (odpowiedzialność po stronie HIS czy dodatkowe kompoenenty obok ePortalu)\n- format daty - trzeba ustalić najlepiej jeden na całą integrację\n",
+    "description" : "Niniejszy dokument stanowi ogólny zarys specyfikacji API dla systemu CGM ePortal.\nW celu integracji z systemem konieczne jest dostarczenie funkcjonalności opisywanych w tym API. Komunikacja między ePortalem, a producentem API powinna być po HTTPS z użyciem certyfikatów. Istnieje możliwość rozszerzenia zabezpieczeń (użycie basic-auth lub oAuth).\n\nKwestie do uwzględnienia według potrzeb, ograniczeń i możliwości projektowych:\n- ePortal potrzebuje skromnej bazy danych na własne potrzeby (konta użytkowników, wnioski), czy jest to możliwe do uwzględnienia ?\n- walidacja wizyty - czy należy to uwzględnić po stronie ePortalu?\n- szybkie potwierdzenie i anulowanie - wymaga implementacji generowania uuid odpornego na ataki\n- systemy płatności - mamy cashBill, jeśli jest potrzeba innych lub wykorzystać płatności od srony producenta API to trzeba liczyć się z w większymi kosztami implementacji\n- wnioski o konto, opcja automatyczna i półautomatyczna - w zależności od potrzeb klienta\n- rejestracja konta i tworzenie pacjenta - problem z mergowaniem pacjentów, który musi być rozwiązany po stronie producenta API\n- mapowanie użytkowników ePortal i pacjentów HIS - chcemy, aby mapowanie było po stronie bazy ePortalu\n- autoryzacja dostępu do danych pacjenta - https z certyfikatami + dodatkowe zabezpieczenia według potrzeb\n- powiadomienia email/sms - do rozstrzygnięcia czy lepsze będą eventy czy ogólny endpoint i trzymanie szablonów wiadomości w ePortal (to drugie lepsze)\n- zapis upoważnień wraz z podpisanym dokumentem - czy robimy i w jaki sposób (odpowiedzialność po stronie HIS czy dodatkowe komponenty obok ePortalu)\n- format daty - trzeba ustalić najlepiej jeden na całą integrację\n- zapis upoważnień wraz z podpisanym dokumentem - funkcjonalność podpisania dokumentu wymagałoby dodatkowego komponentu oprócz ePortalu, alternatywnie producent API powinien udostępnić odpowiedni zasób, umożliwiający podpisanie dokumentu\n\nZakładamy również zmiany po stronie REST API ePortalu w zakresie zmian administracyjnych i konifuracyjnych:\n- api do wniosków\n- api do kont ePortal\n- ewentualne api do szablonów powiadomień ePortal\n- api do mapowań person - konto ePortal\n",
     "version" : "1.0.0",
-    "title" : "ePortal API",
-    "termsOfService" : "http://swagger.io/terms/",
-    "contact" : {
-      "email" : "apiteam@swagger.io"
-    },
-    "license" : {
-      "name" : "Apache 2.0",
-      "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
-    }
+    "title" : "ePortal API"
   },
-  "tags" : [ {
-    "name" : "organization"
+  "servers" : [ {
+    "description" : "SwaggerHub API Auto Mocking",
+    "url" : "https://virtserver.swaggerhub.com/cgm.pl/eportal/1.0.0"
   }, {
-    "name" : "doctor"
+    "description" : "SwaggerHub API Auto Mocking",
+    "url" : "https://virtserver.swaggerhub.com/cgm.com.pl/eportal/1.0.0"
+  } ],
+  "tags" : [ {
+    "name" : "organization",
+    "description" : "Dostęp do jednostek organizacyjnych"
+  }, {
+    "name" : "doctor",
+    "description" : "Dostęp do lekarzy"
   }, {
     "name" : "service"
   }, {
@@ -24,7 +25,7 @@
   }, {
     "name" : "specialization"
   }, {
-    "name" : "test results"
+    "name" : "examinations"
   }, {
     "name" : "visits",
     "description" : "Dostęp do wizyt"
@@ -32,7 +33,7 @@
     "name" : "person",
     "description" : "API udostępniające zasób osoby w systemie szpitalnym (pacjenta lub opiekuna)"
   }, {
-    "name" : "caretakers",
+    "name" : "guardianships",
     "description" : "API udostępniające zasób opiekunów"
   }, {
     "name" : "documents",
@@ -41,8 +42,8 @@
     "name" : "files",
     "description" : "Dostęp do plików załączonych przez pacjenta"
   }, {
-    "name" : "dictionaries",
-    "description" : "Dostęp do zasobów słownikowych"
+    "name" : "kinships",
+    "description" : "Dostęp do słownika pokrewieństw"
   }, {
     "name" : "waitinglists",
     "description" : "Dostęp do stanów kolejek oczekujących"
@@ -51,7 +52,7 @@
     "description" : "Dostęp do skierowań"
   }, {
     "name" : "correspondences",
-    "description" : "Dostęp do korespondencji"
+    "description" : "Dostęp do korespondencji. Panel korespondencji pozwala użytkownikom eportalu na komunikowanie się z wyznaczonymi pracownikami szpitala."
   }, {
     "name" : "archivecopyorder",
     "description" : "Dostęp do zamówień kserokopiii dokumentacji medycznej"
@@ -63,11 +64,17 @@
   }, {
     "name" : "messages",
     "description" : "Dostęp do powiadomień email/sms"
+  }, {
+    "name" : "document generation",
+    "description" : "Dostęp do możliwości generowania dokumentów"
+  }, {
+    "name" : "signing",
+    "description" : "Podpisywanie dokumentu (jeśli będzie realizowane po stronie producenta API)"
   } ],
   "paths" : {
     "/kinships" : {
       "get" : {
-        "tags" : [ "dictionaries" ],
+        "tags" : [ "kinships" ],
         "summary" : "Pobranie słownika pokrewieństw",
         "operationId" : "getKinships",
         "responses" : {
@@ -116,7 +123,7 @@
         }
       }
     },
-    "/persons/{personID}" : {
+    "/persons/{personId}" : {
       "get" : {
         "tags" : [ "person" ],
         "summary" : "Pobranie danych osoby",
@@ -124,7 +131,7 @@
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "personID",
+          "name" : "personId",
           "schema" : {
             "type" : "integer"
           }
@@ -143,14 +150,14 @@
         }
       }
     },
-    "/persons/{personID}/contact" : {
+    "/persons/{personId}/contact" : {
       "get" : {
         "tags" : [ "person" ],
         "summary" : "Pobranie danych kontaktowych osoby",
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "personID",
+          "name" : "personId",
           "schema" : {
             "type" : "integer"
           }
@@ -177,7 +184,7 @@
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "personID",
+          "name" : "personId",
           "schema" : {
             "type" : "integer"
           }
@@ -201,14 +208,14 @@
         }
       }
     },
-    "/persons/{personID}/address" : {
+    "/persons/{personId}/address" : {
       "get" : {
         "tags" : [ "person" ],
         "summary" : "Pobranie danych adresowych osoby",
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "personID",
+          "name" : "personId",
           "schema" : {
             "type" : "integer"
           }
@@ -235,7 +242,7 @@
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "personID",
+          "name" : "personId",
           "schema" : {
             "type" : "integer"
           }
@@ -259,32 +266,32 @@
         }
       }
     },
-    "/caretakers" : {
+    "/guardianships" : {
       "get" : {
-        "tags" : [ "caretakers" ],
-        "summary" : "Pobranie opiekunów",
+        "tags" : [ "guardianships" ],
+        "summary" : "Pobranie danych opieki",
         "parameters" : [ {
           "in" : "query",
-          "name" : "caretakerID",
+          "name" : "guardianshipId",
           "schema" : {
             "type" : "integer"
           }
         }, {
           "in" : "query",
-          "name" : "wardID",
+          "name" : "wardId",
           "schema" : {
             "type" : "integer"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "Pobrano opiekunów",
+            "description" : "Pobrano dane opieki",
             "content" : {
               "application/json" : {
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/Caretaker"
+                    "$ref" : "#/components/schemas/Guardianship"
                   }
                 }
               }
@@ -293,45 +300,45 @@
         }
       },
       "post" : {
-        "tags" : [ "caretakers" ],
-        "summary" : "Dodanie opiekuna",
-        "operationId" : "addCaretaker",
+        "tags" : [ "guardianships" ],
+        "summary" : "Dodanie danych opieki",
+        "operationId" : "addGuardianship",
         "requestBody" : {
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/Caretaker"
+                "$ref" : "#/components/schemas/Guardianship"
               }
             }
           }
         },
         "responses" : {
           "200" : {
-            "description" : "Dodano opiekuna"
+            "description" : "Dodano dane opieki"
           }
         }
       }
     },
-    "/caretakers/{caretakerID}" : {
+    "/guardianships/{guardianshipId}" : {
       "get" : {
-        "tags" : [ "caretakers" ],
-        "summary" : "Pobranie opiekuna",
-        "operationId" : "getCaretaker",
+        "tags" : [ "guardianships" ],
+        "summary" : "Pobranie danych opieki",
+        "operationId" : "getGuardianship",
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "caretakerID",
+          "name" : "guardianshipId",
           "schema" : {
             "type" : "integer"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "Pobrano opiekuna",
+            "description" : "Pobrano dane opieki",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/Caretaker"
+                  "$ref" : "#/components/schemas/Guardianship"
                 }
               }
             }
@@ -339,13 +346,13 @@
         }
       },
       "put" : {
-        "tags" : [ "caretakers" ],
-        "summary" : "Pobranie opiekuna",
-        "operationId" : "updateCaretaker",
+        "tags" : [ "guardianships" ],
+        "summary" : "Modyfikacja danych opieki",
+        "operationId" : "updateGuardianship",
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "caretakerID",
+          "name" : "guardianshipId",
           "schema" : {
             "type" : "integer"
           }
@@ -354,44 +361,26 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/Caretaker"
+                "$ref" : "#/components/schemas/Guardianship"
               }
             }
           }
         },
         "responses" : {
           "200" : {
-            "description" : "Pobrano opiekuna",
+            "description" : "Zmodyfikowane dane opieki",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/Caretaker"
+                  "$ref" : "#/components/schemas/Guardianship"
                 }
               }
             }
           }
         }
-      },
-      "delete" : {
-        "tags" : [ "caretakers" ],
-        "summary" : "usunięcie opiekuna",
-        "operationId" : "deleteCaretaker",
-        "parameters" : [ {
-          "in" : "path",
-          "required" : true,
-          "name" : "caretakerID",
-          "schema" : {
-            "type" : "integer"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "usunięto opiekuna"
-          }
-        }
       }
     },
-    "/organizations/{organizationID}" : {
+    "/organizations/{organizationId}" : {
       "get" : {
         "tags" : [ "organization" ],
         "summary" : "Pobiera poradnie",
@@ -399,7 +388,7 @@
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "organizationID",
+          "name" : "organizationId",
           "schema" : {
             "title" : "integer"
           }
@@ -418,14 +407,14 @@
         }
       }
     },
-    "/organizations/{organizationID}/address" : {
+    "/organizations/{organizationId}/address" : {
       "get" : {
         "tags" : [ "organization" ],
         "summary" : "Pobranie danych adresowych jednostki organizacyjnej",
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "organizationID",
+          "name" : "organizationId",
           "schema" : {
             "type" : "integer"
           }
@@ -447,14 +436,14 @@
         }
       }
     },
-    "/organizations/{organizationID}/contact" : {
+    "/organizations/{organizationId}/contact" : {
       "get" : {
         "tags" : [ "organization" ],
         "summary" : "Pobranie danych kontaktowych jednostki organizacyjnej",
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "organizationID",
+          "name" : "organizationId",
           "schema" : {
             "type" : "integer"
           }
@@ -539,7 +528,7 @@
         }
       }
     },
-    "/doctors/{doctorID}" : {
+    "/doctors/{doctorId}" : {
       "get" : {
         "tags" : [ "doctor" ],
         "summary" : "Pobiera lekarze",
@@ -547,7 +536,7 @@
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "doctorID",
+          "name" : "doctorId",
           "schema" : {
             "title" : "integer"
           }
@@ -628,13 +617,13 @@
         }
       }
     },
-    "/services/{serviceID}" : {
+    "/services/{serviceId}" : {
       "get" : {
         "tags" : [ "service" ],
         "summary" : "Pobiera usługę",
         "parameters" : [ {
           "in" : "path",
-          "name" : "serviceID",
+          "name" : "serviceId",
           "required" : true,
           "schema" : {
             "type" : "integer"
@@ -696,14 +685,14 @@
         "operationId" : "getInsurance",
         "parameters" : [ {
           "in" : "query",
-          "name" : "personID",
+          "name" : "personId",
           "required" : false,
           "schema" : {
             "type" : "integer"
           }
         }, {
           "in" : "query",
-          "name" : "serviceID",
+          "name" : "serviceId",
           "required" : false,
           "schema" : {
             "type" : "integer"
@@ -726,7 +715,7 @@
         }
       }
     },
-    "/specializations/{specializationID}" : {
+    "/specializations/{specializationId}" : {
       "get" : {
         "tags" : [ "specialization" ],
         "summary" : "Pobiera specjalizacje",
@@ -734,7 +723,7 @@
         "parameters" : [ {
           "in" : "path",
           "required" : true,
-          "name" : "specializationID",
+          "name" : "specializationId",
           "schema" : {
             "title" : "integer"
           }
@@ -753,7 +742,7 @@
         }
       }
     },
-    "/specializationss/searches" : {
+    "/specializations/searches" : {
       "post" : {
         "tags" : [ "specialization" ],
         "summary" : "Zwraca specjalizację na podstawie kryteriów wyszukiwania",
@@ -856,7 +845,15 @@
         "summary" : "Pobiera wizyty pacjenta",
         "operationId" : "getPatientVisits",
         "parameters" : [ {
-          "name" : "personID",
+          "name" : "uuid",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "personId",
           "in" : "query",
           "required" : false,
           "schema" : {
@@ -888,18 +885,17 @@
         }
       }
     },
-    "/visits/{visitUUID}" : {
+    "/visits/{visitId}" : {
       "get" : {
         "tags" : [ "visits" ],
         "summary" : "Pobiera szczegóły wizyty",
         "operationId" : "getFullVisitInfo",
         "parameters" : [ {
-          "name" : "visitUUID",
+          "name" : "visitId",
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+            "type" : "integer"
           }
         } ],
         "responses" : {
@@ -923,12 +919,11 @@
         "summary" : "Modyfikuję dane wiyty",
         "operationId" : "modifyAppointment",
         "parameters" : [ {
-          "name" : "visitUUID",
+          "name" : "visitId",
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+            "type" : "integer"
           }
         } ],
         "requestBody" : {
@@ -947,18 +942,17 @@
         }
       }
     },
-    "/visits/{visitUUID}/referrals" : {
+    "/visits/{visitId}/referrals" : {
       "post" : {
         "tags" : [ "referrals" ],
         "summary" : "Zapisanie metadanych skierowania",
         "operationId" : "saveReferral",
         "parameters" : [ {
-          "name" : "visitUUID",
+          "name" : "visitId",
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+            "type" : "integer"
           }
         } ],
         "responses" : {
@@ -982,12 +976,11 @@
         "summary" : "Pobranie metadanych skierowań",
         "operationId" : "getReferrals",
         "parameters" : [ {
-          "name" : "visitUUID",
+          "name" : "visitId",
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+            "type" : "integer"
           }
         } ],
         "responses" : {
@@ -1007,21 +1000,20 @@
         }
       }
     },
-    "/visits/{visitUUID}/referrals/{referralID}" : {
+    "/visits/{visitId}/referrals/{referralId}" : {
       "get" : {
         "tags" : [ "referrals" ],
         "summary" : "Pobranie metadanych skierowania",
         "operationId" : "getReferral",
         "parameters" : [ {
-          "name" : "visitUUID",
+          "name" : "visitId",
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+            "type" : "integer"
           }
         }, {
-          "name" : "referralID",
+          "name" : "referralId",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -1049,15 +1041,14 @@
         "summary" : "usunięcie metadanych skierowania",
         "operationId" : "deleteReferral",
         "parameters" : [ {
-          "name" : "visitUUID",
+          "name" : "visitId",
           "in" : "path",
           "required" : true,
           "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+            "type" : "integer"
           }
         }, {
-          "name" : "referralID",
+          "name" : "referralId",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -1071,17 +1062,31 @@
         }
       }
     },
-    "/examinationResults" : {
+    "/person/{personId}/examinations" : {
       "get" : {
-        "tags" : [ "test results" ],
+        "tags" : [ "examinations" ],
         "summary" : "Pobiera wyniki badań pacjenta",
         "operationId" : "getExaminationResultsForPatient",
         "parameters" : [ {
-          "in" : "query",
-          "name" : "personID",
+          "in" : "path",
+          "name" : "personId",
           "required" : true,
           "schema" : {
             "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "state",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "NEW", "VIEWED", "DELETED" ]
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "NEW", "IN_PROGRESS", "RESULT" ]
           }
         } ],
         "responses" : {
@@ -1101,14 +1106,21 @@
         }
       }
     },
-    "/examinationResults/{resultID}" : {
+    "/person/{personId}/examinations/{resultId}" : {
       "get" : {
-        "tags" : [ "test results" ],
+        "tags" : [ "examinations" ],
         "summary" : "Pobiera wynik badań",
         "operationId" : "getExaminationResultById",
         "parameters" : [ {
           "in" : "path",
-          "name" : "resultID",
+          "name" : "personId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "in" : "path",
+          "name" : "resultId",
           "required" : true,
           "schema" : {
             "type" : "integer"
@@ -1131,11 +1143,18 @@
         }
       },
       "put" : {
-        "tags" : [ "test results" ],
+        "tags" : [ "examinations" ],
         "summary" : "Modyfikuję dane wyników badania",
         "operationId" : "modifyExaminationResults",
         "parameters" : [ {
-          "name" : "resultID",
+          "in" : "path",
+          "name" : "personId",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "name" : "resultId",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -1161,6 +1180,142 @@
         }
       }
     },
+    "/documents/hl7/authorizations" : {
+      "post" : {
+        "tags" : [ "document generation" ],
+        "summary" : "Generowanie dokumentu pseudo HL7 ze zgodami pacjenta dla jego opiekuna",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "personId" : {
+                    "type" : "integer",
+                    "description" : "Id wskazujące na zasób Persons"
+                  },
+                  "caretaker" : {
+                    "$ref" : "#/components/schemas/CaretakerForDocumentGeneration"
+                  },
+                  "authorizations" : {
+                    "type" : "array",
+                    "items" : {
+                      "$ref" : "#/components/schemas/Authorization"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Wygenerowano dokument upoważnień w formie pseudo HL7",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "printoutContent" : {
+                      "type" : "string",
+                      "description" : "Dokument w formie html ( xml z transformatą )"
+                    },
+                    "documentContent" : {
+                      "type" : "string",
+                      "description" : "Dokument w formie xml"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Nastąpił błąd podczas generowania dokumentu"
+          }
+        }
+      }
+    },
+    "/documents/signed" : {
+      "post" : {
+        "tags" : [ "signing" ],
+        "summary" : "Rozpoczęcie procesu podpisu dokumentu",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "additionalInfo" : {
+                    "type" : "string"
+                  },
+                  "successUrl" : {
+                    "type" : "string"
+                  },
+                  "failureUrl" : {
+                    "type" : "string"
+                  },
+                  "basedContent" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Rozpoczęto proces podpisu dokumentu",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "properties" : {
+                    "uuid" : {
+                      "type" : "string"
+                    },
+                    "url" : {
+                      "type" : "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Nastąpił błąd podczas podpisywania dokumentu"
+          }
+        }
+      }
+    },
+    "/documents/signed/{signedDocumentUuid}" : {
+      "get" : {
+        "tags" : [ "signing" ],
+        "summary" : "Pobranie podpisanego dokumentu",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "signedDocumentUuid",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Podpisany dokument",
+            "content" : {
+              "application/xml" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Nastąpił błąd podczas podpisywania dokumentu"
+          }
+        }
+      }
+    },
     "/persons/{personId}/documents" : {
       "get" : {
         "tags" : [ "documents" ],
@@ -1172,8 +1327,7 @@
           "description" : "Id osoby, której dokumentacja ma dotyczyć",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "integer"
           }
         } ],
         "responses" : {
@@ -1182,7 +1336,10 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/PatientDocument"
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PatientDocument"
+                  }
                 }
               }
             }
@@ -1207,13 +1364,12 @@
           "description" : "Id osoby, której pliki mają dotyczyć",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "integer"
           }
         } ],
         "requestBody" : {
           "content" : {
-            "multipart/form-data" : {
+            "application/json" : {
               "schema" : {
                 "type" : "object",
                 "properties" : {
@@ -1229,9 +1385,8 @@
                   "createDate" : {
                     "type" : "string"
                   },
-                  "file" : {
-                    "type" : "string",
-                    "format" : "binary"
+                  "content" : {
+                    "type" : "string"
                   }
                 }
               }
@@ -1256,7 +1411,7 @@
     "/persons/{personId}/documents/{documentId}" : {
       "get" : {
         "tags" : [ "documents" ],
-        "summary" : "Pobranie dokumentacji medycznej w formie wydruku do wyświetlenia (transformata) w ramach zgód pacjenta",
+        "summary" : "Pobranie dokumentacji medycznej w formie pliku (np. wydruku)",
         "description" : "Pobranie dokumentacji medycznej pacjenta",
         "parameters" : [ {
           "name" : "personId",
@@ -1264,8 +1419,7 @@
           "description" : "Id osoby, której dokumentacja ma dotyczyć",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "integer"
           }
         }, {
           "name" : "documentId",
@@ -1276,14 +1430,31 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "Accept",
+          "in" : "header",
+          "description" : "Typ pobieranej zawartości, jakiej oczekuje klient (plik/transformata)",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "application/octet-stream", "text/html" ]
+          }
         } ],
         "responses" : {
           "200" : {
-            "description" : "Dokument pacjenta w formie transformaty (wydruk)",
+            "description" : "Dokument pacjenta w formie pliku do pobrania lub transformaty ( w zależności od ustawionego nagłówka Content-Type )",
             "content" : {
               "text/html" : {
                 "schema" : {
-                  "type" : "string"
+                  "type" : "string",
+                  "description" : "Dokument w formie xml z transformatą"
+                }
+              },
+              "application/octet-stream" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary",
+                  "description" : "Dokument w formie binarnej do pobrania"
                 }
               }
             }
@@ -1310,8 +1481,7 @@
           "description" : "Id osoby, której pliki mają dotyczyć",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "integer"
           }
         } ],
         "responses" : {
@@ -1320,7 +1490,10 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/PatientFile"
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PatientFile"
+                  }
                 }
               }
             }
@@ -1337,8 +1510,7 @@
           "description" : "Id osoby, której pliki mają dotyczyć",
           "required" : true,
           "schema" : {
-            "type" : "integer",
-            "format" : "int64"
+            "type" : "integer"
           }
         } ],
         "requestBody" : {
@@ -1384,6 +1556,50 @@
       }
     },
     "/person/{personId}/files/{fileId}" : {
+      "get" : {
+        "tags" : [ "files" ],
+        "summary" : "Pobranie pliku pacjenta",
+        "parameters" : [ {
+          "name" : "personId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "name" : "fileId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "name" : "Accept",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "application/octet-stream" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Udało się pobrać plik",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary",
+                  "description" : "Dokument w formie binarnej do pobrania"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Nie znaleziono pacjenta"
+          }
+        }
+      },
       "delete" : {
         "tags" : [ "files" ],
         "summary" : "Usunięcie pliku (wraz z jego metadanymi) pacjenta",
@@ -1530,7 +1746,7 @@
         "summary" : "Pobranie stanów kolejek oczekujących",
         "parameters" : [ {
           "in" : "query",
-          "name" : "personID",
+          "name" : "personId",
           "schema" : {
             "type" : "integer"
           }
@@ -1564,14 +1780,14 @@
         "tags" : [ "correspondences" ],
         "summary" : "Pobranie korespondencji",
         "parameters" : [ {
-          "name" : "senderID",
+          "name" : "senderId",
           "in" : "query",
           "required" : false,
           "schema" : {
             "type" : "integer"
           }
         }, {
-          "name" : "receiverID",
+          "name" : "receiverId",
           "in" : "query",
           "required" : false,
           "schema" : {
@@ -1628,11 +1844,11 @@
         }
       }
     },
-    "/correspondences/{correspondenceID}" : {
+    "/correspondences/{correspondenceId}" : {
       "get" : {
         "tags" : [ "correspondences" ],
         "parameters" : [ {
-          "name" : "correspondenceID",
+          "name" : "correspondenceId",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -1654,8 +1870,9 @@
       },
       "put" : {
         "tags" : [ "correspondences" ],
+        "description" : "Dopóki korespondencja nie zostanie odczytana można ją modyfikować.",
         "parameters" : [ {
-          "name" : "correspondenceID",
+          "name" : "correspondenceId",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -1687,7 +1904,7 @@
       "delete" : {
         "tags" : [ "correspondences" ],
         "parameters" : [ {
-          "name" : "correspondenceID",
+          "name" : "correspondenceId",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -1768,7 +1985,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/PrescriptionPack"
+                    "$ref" : "#/components/schemas/Prescription"
                   }
                 }
               }
@@ -1780,7 +1997,7 @@
     "/messages" : {
       "post" : {
         "tags" : [ "messages" ],
-        "summary" : "Dodanie wiadomości do wysłania - wysłanie powiadomienia sms lub email (na potrzeby udostępniania danych pacjenta, więc może niepotrzebne)",
+        "summary" : "Dodanie wiadomości do wysłania - wysłanie powiadomienia sms lub email",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -1793,6 +2010,9 @@
         "responses" : {
           "201" : {
             "description" : "Dodano wiadomość do wysłania"
+          },
+          "400" : {
+            "description" : "Nie udało się wysłać wiadomości"
           }
         }
       }
@@ -1841,16 +2061,16 @@
       "ReservationCriteria" : {
         "type" : "object",
         "properties" : {
-          "personID" : {
+          "personId" : {
             "type" : "string"
           },
-          "doctorID" : {
+          "doctorId" : {
             "type" : "integer"
           },
-          "organizationID" : {
+          "organizationId" : {
             "type" : "integer"
           },
-          "serviceID" : {
+          "serviceId" : {
             "type" : "integer"
           },
           "timeFrom" : {
@@ -1981,7 +2201,7 @@
           "id" : {
             "type" : "integer"
           },
-          "serviceID" : {
+          "serviceId" : {
             "type" : "integer"
           },
           "timeFrom" : {
@@ -1992,10 +2212,10 @@
             "type" : "string",
             "format" : "date-time"
           },
-          "doctorID" : {
+          "doctorId" : {
             "type" : "integer"
           },
-          "organizationID" : {
+          "organizationId" : {
             "type" : "integer"
           }
         }
@@ -2003,10 +2223,10 @@
       "Reservation" : {
         "type" : "object",
         "properties" : {
-          "personID" : {
+          "personId" : {
             "type" : "integer"
           },
-          "timeslotID" : {
+          "timeslotId" : {
             "type" : "integer"
           }
         }
@@ -2082,11 +2302,14 @@
       "Visit" : {
         "type" : "object",
         "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
           "uuid" : {
             "type" : "string",
             "format" : "uuid"
           },
-          "personID" : {
+          "personId" : {
             "type" : "integer"
           },
           "status" : {
@@ -2108,13 +2331,13 @@
           "hoursToRemind" : {
             "type" : "integer"
           },
-          "officeID" : {
+          "officeId" : {
             "type" : "integer"
           },
-          "clinicID" : {
+          "clinicId" : {
             "type" : "integer"
           },
-          "doctorID" : {
+          "doctorId" : {
             "type" : "integer"
           }
         }
@@ -2122,13 +2345,13 @@
       "ExaminationResult" : {
         "type" : "object",
         "properties" : {
-          "resultID" : {
+          "resultId" : {
             "type" : "integer"
           },
-          "serviceID" : {
+          "serviceId" : {
             "type" : "integer"
           },
-          "oraganizationID" : {
+          "organizationId" : {
             "type" : "integer"
           },
           "status" : {
@@ -2143,15 +2366,14 @@
             "type" : "string",
             "format" : "date-time"
           },
-          "visitID" : {
+          "visitId" : {
             "type" : "integer"
           },
-          "results" : {
+          "resultDocumentIds" : {
             "type" : "array",
             "items" : {
-              "type" : "string",
-              "format" : "url",
-              "description" : "link do pliku z wynikami badania"
+              "type" : "integer",
+              "description" : "idki plików z wynikami badań dostępnymi pod zasobem files/resultDocumentId"
             }
           }
         }
@@ -2160,8 +2382,8 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer",
-            "format" : "int64"
+            "description" : "id dokumentu pacjenta, odwołując się na documents/id można dostać plik w postaci do pobrania lub transformaty",
+            "type" : "integer"
           },
           "name" : {
             "type" : "string"
@@ -2183,9 +2405,6 @@
           },
           "comment" : {
             "type" : "string"
-          },
-          "printOutLink" : {
-            "type" : "string"
           }
         }
       },
@@ -2193,11 +2412,9 @@
         "type" : "object",
         "properties" : {
           "id" : {
+            "description" : "id pliku pacjenta, odwołując się na files/id można dostać plik w postaci do pobrania",
             "type" : "integer",
             "format" : "int64"
-          },
-          "fileLink" : {
-            "type" : "string"
           },
           "fileName" : {
             "type" : "string"
@@ -2216,19 +2433,21 @@
           }
         }
       },
-      "Caretaker" : {
+      "Guardianship" : {
         "type" : "object",
         "properties" : {
           "id" : {
             "type" : "integer"
           },
-          "caretakerID" : {
-            "type" : "integer"
+          "caretakerId" : {
+            "type" : "integer",
+            "description" : "Identyfikator wskazujący na osobę będącą opiekunem"
           },
-          "wardID" : {
-            "type" : "integer"
+          "wardId" : {
+            "type" : "integer",
+            "description" : "Identyfikator wskazujący na osobę będącą podopiecznym"
           },
-          "kinshipID" : {
+          "kinshipId" : {
             "type" : "integer"
           },
           "authorizations" : {
@@ -2309,17 +2528,15 @@
           "recognition" : {
             "type" : "string"
           },
-          "visitUUID" : {
-            "type" : "string",
-            "format" : "uuid"
+          "visitId" : {
+            "type" : "integer"
           },
           "filePath" : {
             "type" : "string"
           },
-          "url" : {
-            "type" : "string",
-            "format" : "url",
-            "description" : "link do pliku"
+          "fileId" : {
+            "type" : "integer",
+            "description" : "id pliku skierowania, dostępny pod zasobem files/id"
           }
         }
       },
@@ -2391,13 +2608,13 @@
           "id" : {
             "type" : "integer"
           },
-          "senderID" : {
-            "type" : "integer"
+          "sender" : {
+            "$ref" : "#/components/schemas/Sender"
           },
-          "receiverIDs" : {
+          "receivers" : {
             "type" : "array",
             "items" : {
-              "type" : "integer"
+              "$ref" : "#/components/schemas/Receiver"
             }
           },
           "title" : {
@@ -2409,6 +2626,9 @@
           "status" : {
             "type" : "string",
             "enum" : [ "NEW", "READ", "DELETED" ]
+          },
+          "originalCorrespondenceId" : {
+            "type" : "integer"
           }
         }
       },
@@ -2421,7 +2641,7 @@
           "name" : {
             "type" : "string"
           },
-          "receiverIDs" : {
+          "receiverIds" : {
             "type" : "array",
             "items" : {
               "type" : "integer"
@@ -2438,8 +2658,8 @@
           "orderDate" : {
             "type" : "string"
           },
-          "organization" : {
-            "$ref" : "#/components/schemas/Organization"
+          "organizationId" : {
+            "type" : "integer"
           },
           "status" : {
             "type" : "string",
@@ -2447,11 +2667,11 @@
           },
           "pickupType" : {
             "type" : "string",
-            "enum" : [ "Shipping", "PersonalPickup" ]
+            "enum" : [ "SHIPPING", "PERSONAL_PICKUP" ]
           },
           "paymentType" : {
             "type" : "string",
-            "enum" : [ "CashOnDelivery", "OnlinePayment" ]
+            "enum" : [ "CASH_ON_DELIVERY", "ONLINE_PAYMENT" ]
           },
           "totalPrice" : {
             "type" : "number"
@@ -2478,11 +2698,11 @@
           },
           "pickupType" : {
             "type" : "string",
-            "enum" : [ "Shipping", "PersonalPickup" ]
+            "enum" : [ "SHIPPING", "PERSONAL_PICKUP" ]
           },
           "paymentType" : {
             "type" : "string",
-            "enum" : [ "CashOnDelivery", "OnlinePayment" ]
+            "enum" : [ "CASH_ON_DELIVERY", "ONLINE_PAYMENT" ]
           },
           "deliveryAddress" : {
             "$ref" : "#/components/schemas/Address"
@@ -2538,11 +2758,11 @@
           },
           "pickupType" : {
             "type" : "string",
-            "enum" : [ "Shipping", "PersonalPickup" ]
+            "enum" : [ "SHIPPING", "PERSONAL_PICKUP" ]
           },
           "paymentType" : {
             "type" : "string",
-            "enum" : [ "CashOnDelivery", "OnlinePayment" ]
+            "enum" : [ "CASH_ON_DELIVERY", "ONLINE_PAYMENT" ]
           },
           "deliveryAddress" : {
             "$ref" : "#/components/schemas/Address"
@@ -2555,8 +2775,8 @@
       "ArchiveCopyOrder" : {
         "type" : "object",
         "properties" : {
-          "organization" : {
-            "$ref" : "#/components/schemas/Organization"
+          "organizationId" : {
+            "type" : "integer"
           },
           "personId" : {
             "type" : "integer"
@@ -2603,11 +2823,11 @@
           },
           "pickupType" : {
             "type" : "string",
-            "enum" : [ "Shipping", "PersonalPickup" ]
+            "enum" : [ "SHIPPING", "PERSONAL_PICKUP" ]
           },
           "paymentType" : {
             "type" : "string",
-            "enum" : [ "CashOnDelivery", "OnlinePayment" ]
+            "enum" : [ "CASH_ON_DELIVERY", "ONLINE_PAYMENT" ]
           },
           "status" : {
             "type" : "string",
@@ -2677,14 +2897,6 @@
           "type" : {
             "type" : "string",
             "enum" : [ "EMAIL", "SMS" ]
-          },
-          "params" : {
-            "type" : "object"
-          },
-          "event" : {
-            "type" : "string",
-            "enum" : [ "SIMPLE", "PIN_AUTHORIZE", "REMIND_PASSWORD", "ACCOUNT_REGISTERED" ],
-            "description" : "Zdarzenie w ePortalu, którego dotyczy powiadomienie, SIMPLE oznacza, że content i subject i recipient są brane z ciała tego requesta"
           }
         }
       },
@@ -2722,20 +2934,6 @@
           }
         }
       },
-      "PrescriptionPack" : {
-        "type" : "object",
-        "properties" : {
-          "packSize" : {
-            "type" : "integer"
-          },
-          "prescriptions" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/Prescription"
-            }
-          }
-        }
-      },
       "Prescription" : {
         "type" : "object",
         "properties" : {
@@ -2745,26 +2943,129 @@
           "prescriptionNo" : {
             "type" : "string"
           },
-          "insurId" : {
+          "personId" : {
             "type" : "integer"
           },
-          "insurCode" : {
+          "orderDate" : {
             "type" : "string"
+          },
+          "comment" : {
+            "type" : "string"
+          },
+          "organization" : {
+            "$ref" : "#/components/schemas/Organization"
+          },
+          "orderingDoctor" : {
+            "$ref" : "#/components/schemas/Doctor"
+          },
+          "prescribedDrugs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PrescribedDrug"
+            }
           }
         }
       },
-      "PrescriptedDrug" : {
+      "PrescribedDrug" : {
         "type" : "object",
         "properties" : {
           "id" : {
             "type" : "integer"
+          },
+          "packageCount" : {
+            "type" : "integer"
+          },
+          "drug" : {
+            "$ref" : "#/components/schemas/Drug"
+          },
+          "comment" : {
+            "type" : "string"
+          },
+          "dosage" : {
+            "$ref" : "#/components/schemas/Dosage"
+          },
+          "drugCount" : {
+            "type" : "integer"
+          },
+          "dosageUnit" : {
+            "type" : "string"
+          },
+          "dosageQuantity" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Dosage" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Drug" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Sender" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "description" : "Identyfikator wskazujący na użytkownika erpotalu (pacjenta lub opiekuna) lub na lekarze."
+          },
+          "role" : {
+            "type" : "string",
+            "enum" : [ "PATIENT", "CARETAKER", "DOCTOR" ]
+          }
+        }
+      },
+      "Receiver" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "description" : "Identyfikator wskazujący na użytkownika erpotalu (pacjenta lub opiekuna) lub na lekarze."
+          },
+          "role" : {
+            "type" : "string",
+            "enum" : [ "PATIENT", "CARETAKER", "DOCTOR" ]
+          }
+        }
+      },
+      "CaretakerForDocumentGeneration" : {
+        "type" : "object",
+        "properties" : {
+          "firstName" : {
+            "type" : "string"
+          },
+          "lastName" : {
+            "type" : "string"
+          },
+          "nationalIdNo" : {
+            "type" : "string"
+          },
+          "phone" : {
+            "type" : "string"
+          },
+          "kinship" : {
+            "$ref" : "#/components/schemas/Kinship"
+          },
+          "insertDate" : {
+            "type" : "string"
           }
         }
       }
     }
-  },
-  "servers" : [ {
-    "description" : "SwaggerHub API Auto Mocking",
-    "url" : "https://virtserver.swaggerhub.com/cgm.pl/eportal/1.0.0"
-  } ]
+  }
 }
