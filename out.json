@@ -1,0 +1,348 @@
+openapi: 3.0.0
+info:
+  description: |
+    Niniejszy dokument stanowi ogólny zarys specyfikacji API systemu CGM ePortal dla zewnętrznego systemu HIS.
+
+  version: "1.0.0"
+  title: ePortal REST API
+tags:
+  - name: applications
+    description: Dostęp do zasobu wniosków o konto w ePortal
+  - name: accounts
+    description: Dostęp do zasobu kont ePortalu
+  - name: reports
+    description: Dostęp do raportów ePortalu
+  - name: messages
+    description: Dostęp do konfiguracji powiadomień ePortal
+paths:
+  /accounts/applications:
+    get:
+      tags:
+        - applications
+      summary: Pobranie wszystkich wniosków o założenie konto w ePortalu
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [APPLICATION_CREATED,
+                   APPLICATION_CANCELLED,
+                   APPLICATION_CONFIRMED_BY_EMAIL,
+                   ACCOUNT_CREATED]
+          description: status wniosku o konto
+      responses:
+        '200':
+          description: Pobranie wniosków ePortal
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegistrationApplication'
+  /accounts/applications/{applicationId}:
+    get:
+      tags:
+        - applications
+      summary: Pobieranie danych wniosku
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Zmieniono dane wniosku
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationApplication'
+        '404':
+          description: Nie znaleziono wniosku
+    patch:
+      tags:
+        - applications
+      summary: Zmiana statusu wniosku
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        '204':
+          description: Zmieniono dane konta
+        '404':
+          description: Nie znaleziono konta
+  /accounts:
+    get:
+      tags:
+        - accounts
+      summary: Pobieranie danych o kontach ePortal
+      parameters:
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista kont ePortal
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EportalAccount'
+    post:
+      tags:
+        - accounts
+      summary: Utworzenie konta ePortal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EportalAccount'
+      responses:
+        '201':
+          description: Utworzono konto ePortal (strategia tworzenia konta - półautomatyczna)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EportalAccount'
+        '409':
+          description: Konto zostało już utworzone dla podanych danych
+  /accounts/{accountId}:
+    get:
+      tags:
+        - accounts
+      summary: Pobieranie danych o koncie ePortal
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pobrane dane o koncie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EportalAccount'
+        '404':
+          description: Nie znaleziono konta ePortal
+    patch:
+      tags:
+        - accounts
+      summary: Blokowanie/aktywacja kont ePortal
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+                - type: object
+                  description: Potwierdzenie tożsamości użytkownika konta
+                  properties:
+                    userIdentityAuthenticated:
+                      type: boolean
+                - type: object
+                  description: Zmiana loginu użytkownika konta
+                  properties:
+                    login:
+                      type: string
+                - type: object
+                  description: Aktywacja/deaktywacja konta
+                  properties:
+                    active:
+                      type: boolean
+      responses:
+        '204':
+          description: Zmieniono dane konta
+        '404':
+          description: Nie znaleziono konta
+  /reports/useractions:
+    get:
+      tags:
+        - reports
+      summary: Raporty akcji użytkowników
+      parameters:
+        - name: personId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pobrane rekordy akcji użytkowników
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportActionRecord'
+
+  /messages/templates:
+    get:
+      tags:
+        - messages
+      summary: Szablony powiadomień ePortal
+      responses:
+        '200':
+          description: Pobrane szablony powiadomień ePortal
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MessageTemplate'
+
+  /messages/templates/{templateId}:
+    get:
+      tags:
+        - messages
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pobrane szablonu powiadomień ePortal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageTemplate'
+    put:
+      tags:
+        - messages
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageTemplate'
+      responses:
+        '204':
+          description: Zmieniono dane szablonu powiadomienia
+        '404':
+          description: Nie znaleziono szablonu powiadomienia
+
+components:
+  schemas:
+    RegistrationApplication:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Wykorzystywane jedynie przy pobieraniu istniejącego zasobu przy wyszukiwaniu
+        ward:
+          $ref: '#/components/schemas/RegistrationApplicationPersonData'
+        person:
+          $ref: '#/components/schemas/RegistrationApplicationPersonData'
+        regulationsConfirmation:
+          type: string
+        regulationsConfirmationClause:
+          type: string
+        token:
+          type: string
+        confirmationDate:
+          type: string
+        status:
+          type: string
+        statusChangeDateTime:
+          type: string
+        sex:
+          type: string
+        fatherName:
+          type: string
+        formFillingDate:
+          type: string
+        insertingPerson:
+          type: integer
+    RegistrationApplicationPersonData:
+      type: object
+      properties:
+        pesel:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        eMail:
+          type: string
+        birthDate:
+          type: string
+    EportalAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Wykorzystywane jedynie przy pobieraniu istniejącego zasobu przy wyszukiwaniu
+        personId:
+          type: integer
+          description: Pole wymagane
+        login:
+          type: string
+          description: Pole wymagane
+        password:
+          type: string
+        isUserIdentityAuthenticated:
+          type: boolean
+        passwordChangeDt:
+          type: string
+        active:
+          type: boolean
+          description: Pole wymagane
+    ReportActionRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Wykorzystywane jedynie przy pobieraniu istniejącego zasobu przy wyszukiwaniu
+        action:
+          type: string
+        personId:
+          type: integer
+        status:
+          type: string
+    MessageTemplate:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Wykorzystywane jedynie przy pobieraniu istniejącego zasobu przy wyszukiwaniu
+        type:
+          type: string
+          enum: [EMAIL, SMS]
+        name:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        active:
+          type: boolean
